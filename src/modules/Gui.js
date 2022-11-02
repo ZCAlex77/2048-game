@@ -7,8 +7,22 @@ const Gui = (() => {
   );
   canvas.width = canvas.height = unit * 4;
 
+  const cellColorMap = {
+    2: '#363006',
+    4: '#75690E',
+    8: '#B5A216',
+    16: '#DBC51A',
+    32: '#F5DC1E',
+    64: '#36250A',
+    128: '#755116',
+    256: '#B57D22',
+    512: '#DB972A',
+    1024: '#F5AA2F',
+    2048: '#F5420E',
+  };
+
   const renderBoard = (() => {
-    ctx.strokeStyle = 'gold';
+    ctx.strokeStyle = '#fff';
     ctx.lineWidth = 2;
 
     for (let i = 0; i < 5; i++) {
@@ -27,7 +41,19 @@ const Gui = (() => {
     }
   })();
 
-  return { unit };
+  const renderCell = (cell) => {
+    if (!cell.getValue()) return;
+
+    ctx.fillStyle = cellColorMap[cell.getValue()];
+    ctx.fillRect(cell.x + 1, cell.y + 1, unit - 2, unit - 2);
+
+    ctx.fillStyle = '#fff';
+    ctx.font = '30px Monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText(cell.getValue(), cell.x + unit / 2, cell.y + unit / 2 + 10);
+  };
+
+  return { unit, renderCell };
 })();
 
 export default Gui;
