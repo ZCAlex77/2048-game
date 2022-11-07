@@ -12,16 +12,61 @@ body {
   width: 100vw;
   height: 100vh;
   background: #111;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-direction: column;
-  gap: 10px;
+  display: grid;
+  grid-template-rows: 30px auto 1fr 30px;
+  grid-template-columns: 30px 1fr 1fr 1fr 30px;
+  gap: 20px;
+
+  > div {
+    grid-row: 3 / span 1;
+  }
+
+  $divs: 1, 2, 3;
+  @each $div in $divs {
+    > div:nth-of-type(#{$div}) {
+      grid-column: calc(#{$div} + 1);
+    }
+  }
+}
+
+#inputVisual {
+  display: grid;
+  place-items: center;
+
+  > div {
+    width: 214px;
+    height: 142px;
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 2px;
+
+    > div:not(:first-of-type, :nth-of-type(3)) {
+      color: #111;
+      border: 2px inset #fff;
+      color: #fff;
+      font-size: 1.6rem;
+      place-self: center;
+      width: 70px;
+      height: 70px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s, color 0.2s;
+
+      &.active {
+        background: #fff;
+        color: #111;
+      }
+    }
+  }
 }
 
 h1 {
   font-size: 2.4rem;
   color: #fff;
+  text-align: center;
+  margin-bottom: 20px;
+  grid-area: 2 / 3 / span 1 / span 1;
 
   sub {
     font-size: 40%;

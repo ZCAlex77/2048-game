@@ -1,11 +1,16 @@
 const Gui = (() => {
   const canvas = document.querySelector('canvas'),
+    inputVisual = document.querySelector('#inputVisual'),
+    logDisplay = document.querySelector('#log'),
+    keyDisplays = document.querySelectorAll('.keyDisplay'),
     ctx = canvas.getContext('2d');
 
   let unit = Math.floor(
     (window.innerWidth < 400 ? window.innerWidth - 20 : 400) / 4 + 10
   );
   canvas.width = canvas.height = unit * 4;
+
+  inputVisual.style.height = logDisplay.style.height = `${unit * 4}px`;
 
   const cellColorMap = {
     2: '#363006',
@@ -19,6 +24,12 @@ const Gui = (() => {
     512: '#DB972A',
     1024: '#F5AA2F',
     2048: '#F5420E',
+  };
+
+  const highlightKey = (index) => {
+    keyDisplays.forEach((k) => k.classList.remove('active'));
+    keyDisplays[index].classList.add('active');
+    setTimeout(() => keyDisplays[index].classList.remove('active'), 200);
   };
 
   const renderBoard = () => {
@@ -60,7 +71,7 @@ const Gui = (() => {
 
   renderBoard();
 
-  return { unit, renderCell, clearBoard };
+  return { unit, renderCell, clearBoard, highlightKey };
 })();
 
 export default Gui;
