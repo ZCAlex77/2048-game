@@ -21,7 +21,7 @@ const Gui = (() => {
     2048: '#F5420E',
   };
 
-  const renderBoard = (() => {
+  const renderBoard = () => {
     ctx.strokeStyle = '#fff';
     ctx.lineWidth = 2;
 
@@ -39,7 +39,12 @@ const Gui = (() => {
       ctx.closePath();
       ctx.stroke();
     }
-  })();
+  };
+
+  const clearBoard = () => {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    renderBoard();
+  };
 
   const renderCell = (cell) => {
     if (!cell.getValue()) return;
@@ -53,7 +58,9 @@ const Gui = (() => {
     ctx.fillText(cell.getValue(), cell.x + unit / 2, cell.y + unit / 2 + 10);
   };
 
-  return { unit, renderCell };
+  renderBoard();
+
+  return { unit, renderCell, clearBoard };
 })();
 
 export default Gui;
