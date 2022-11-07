@@ -4,11 +4,8 @@ import UserInput from './modules/UserInput';
 import Cell from './modules/Cell';
 
 const game = (() => {
-  const cells = Array(16)
-    .fill(0)
-    .map((n, i) => {
-      return Cell((i % 4) * Gui.unit, Math.floor(i / 4) * Gui.unit, 0);
-    });
+  let lastState = [];
+  let cells = [];
 
   const spawnCell = () => {
     let emptyCells = cells.filter((cell) => !cell.getValue());
@@ -67,7 +64,11 @@ const game = (() => {
         // if the next value is the same as the current one, merge them
         if (values[i][j] === values[i][j + direction]) {
           values[i][j] *= 2;
-          for (let k = j + direction; values[i][k] !== 0; k += direction)
+          for (
+            let k = j + direction;
+            values[i][k] !== 0 && k >= 0 && k <= 3;
+            k += direction
+          )
             values[i][k] = values[i][k + direction];
         }
       }
@@ -85,10 +86,28 @@ const game = (() => {
   };
 
   const setup = () => {
+    cells = Array(16)
+      .fill(0)
+      .map((n, i) => {
+        return Cell((i % 4) * Gui.unit, Math.floor(i / 4) * Gui.unit, 0);
+      });
     for (let i = 0; i < 2; i++) spawnCell();
+    lastState = cells.map((cell) => cell.getValue());
   };
 
   const update = () => {
+    // check if cells moved
+    let madeMove = false;
+    for (let i = 0; i < 16; i++)
+      if (cells[i].getValue() !== lastState[i]) madeMove = true;
+
+    // if cells moved, spawn another cell
+    if (madeMove) {
+      spawnCell();
+      lastState = cells.map((cell) => cell.getValue());
+    }
+
+    // rendering
     Gui.clearBoard();
     for (let i = 0; i < cells.length; i++) Gui.renderCell(cells[i]);
   };
