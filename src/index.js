@@ -4,11 +4,13 @@ import UserInput from './modules/UserInput';
 import Cell from './modules/Cell';
 
 const game = (() => {
-  let lastState = [];
   let score = 4;
   let highest = 2;
-  let highscore = 4;
+  let highscore = Number(localStorage.getItem('2048highscore') ?? 4);
+
   let gameOver = false;
+
+  let lastState = [];
   let cells = Array(16)
     .fill(0)
     .map((n, i) => {
@@ -35,10 +37,17 @@ const game = (() => {
     Gui.toggleGameOver(true);
   };
 
+  const saveHighscore = () => {
+    localStorage.setItem('2048highscore', highscore);
+  };
+
   const updateScore = () => {
     let values = cells.map((cell) => cell.getValue());
     score = values.reduce((p, c) => (p += c), 0);
-    if (score >= highscore) highscore = score;
+    if (score >= highscore) {
+      highscore = score;
+      saveHighscore();
+    }
     highest = Math.max(...values);
 
     Gui.updateScore(score, highscore, highest);
