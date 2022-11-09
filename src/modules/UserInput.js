@@ -2,6 +2,12 @@ import game from '../index';
 import Gui from './Gui';
 
 const UserInput = (() => {
+  const restartBtn = document.querySelector('#restart');
+
+  restartBtn.onclick = () => {
+    game.restart();
+  };
+
   document.addEventListener('keydown', (ev) => {
     switch (ev.key) {
       case 'ArrowUp':

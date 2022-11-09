@@ -5,11 +5,15 @@ import Cell from './modules/Cell';
 
 const game = (() => {
   let lastState = [];
-  let cells = [];
   let score = 4;
   let highest = 2;
   let highscore = 4;
   let gameOver = false;
+  let cells = Array(16)
+    .fill(0)
+    .map((n, i) => {
+      return Cell((i % 4) * Gui.unit, Math.floor(i / 4) * Gui.unit, 0);
+    });
 
   const checkIfGameOver = () => {
     let values = cells.map((cell) => cell.getValue());
@@ -28,7 +32,7 @@ const game = (() => {
       }
 
     gameOver = true;
-    Gui.showGameOver();
+    Gui.toggleGameOver(true);
   };
 
   const updateScore = () => {
@@ -123,11 +127,6 @@ const game = (() => {
   };
 
   const setup = () => {
-    cells = Array(16)
-      .fill(0)
-      .map((n, i) => {
-        return Cell((i % 4) * Gui.unit, Math.floor(i / 4) * Gui.unit, 0);
-      });
     for (let i = 0; i < 2; i++) spawnCell();
     lastState = cells.map((cell) => cell.getValue());
   };
@@ -157,7 +156,21 @@ const game = (() => {
   setup();
   update();
 
-  const restart = () => {};
+  const restart = () => {
+    if (!gameOver) if (!confirm('Are you sure you want to restart?')) return;
+
+    gameOver = false;
+    score = 4;
+    highest = 2;
+    cells.forEach((cell) => cell.setValue(0));
+
+    Gui.toggleGameOver(false);
+    Gui.clearBoard();
+    Gui.updateScore(4, highscore, 2);
+
+    setup();
+    update();
+  };
 
   return { merge, restart };
 })();

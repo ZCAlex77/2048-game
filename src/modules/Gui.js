@@ -30,9 +30,8 @@ const Gui = (() => {
     2048: '#F5420E',
   };
 
-  const showGameOver = () => {
-    msgDisplay.textContent = 'Game over!';
-    msgDisplay.style.display = 'block';
+  const toggleGameOver = (onOff) => {
+    msgDisplay.style.visibility = onOff ? 'visible' : 'hidden';
   };
 
   const updateScore = (score, highscore, highest) => {
@@ -92,7 +91,7 @@ const Gui = (() => {
     clearBoard,
     highlightKey,
     updateScore,
-    showGameOver,
+    toggleGameOver,
   };
 })();
 
