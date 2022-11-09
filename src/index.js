@@ -6,6 +6,18 @@ import Cell from './modules/Cell';
 const game = (() => {
   let lastState = [];
   let cells = [];
+  let score = 4;
+  let highest = 2;
+  let highscore = 4;
+
+  const updateScore = () => {
+    let values = cells.map((cell) => cell.getValue());
+    score = values.reduce((p, c) => (p += c), 0);
+    if (score >= highscore) highscore = score;
+    highest = Math.max(...values);
+
+    Gui.updateScore(score, highscore, highest);
+  };
 
   const spawnCell = () => {
     let emptyCells = cells.filter((cell) => !cell.getValue());
@@ -26,7 +38,7 @@ const game = (() => {
         // each matrix row will be a column of the game grid
         values = [[], [], [], []];
         for (let i = 0; i < 16; i++) {
-          values[Math.floor(i % 4)].push(cells[i].getValue());
+          values[i % 4].push(cells[i].getValue());
         }
         break;
     }
@@ -64,12 +76,16 @@ const game = (() => {
         // if the next value is the same as the current one, merge them
         if (values[i][j] === values[i][j + direction]) {
           values[i][j] *= 2;
+
+          // remove the used value and shift next cells in place
           for (
             let k = j + direction;
             values[i][k] !== 0 && k >= 0 && k <= 3;
             k += direction
-          )
+          ) {
             values[i][k] = values[i][k + direction];
+            if (values[i][k] === undefined) values[i][k] = 0;
+          }
         }
       }
 
@@ -110,6 +126,8 @@ const game = (() => {
     // rendering
     Gui.clearBoard();
     for (let i = 0; i < cells.length; i++) Gui.renderCell(cells[i]);
+
+    updateScore();
   };
 
   setup();

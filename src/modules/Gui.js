@@ -3,6 +3,10 @@ const Gui = (() => {
     inputVisual = document.querySelector('#inputVisual'),
     logDisplay = document.querySelector('#log'),
     keyDisplays = document.querySelectorAll('.keyDisplay'),
+    scoreDisplay = document.querySelector('#score'),
+    highscoreDisplay = document.querySelector('#highscore'),
+    highestDisplay = document.querySelector('#highest'),
+    msgDisplay = document.querySelector('#msg'),
     ctx = canvas.getContext('2d');
 
   let unit = Math.floor(
@@ -24,6 +28,12 @@ const Gui = (() => {
     512: '#DB972A',
     1024: '#F5AA2F',
     2048: '#F5420E',
+  };
+
+  const updateScore = (score, highscore, highest) => {
+    scoreDisplay.textContent = score;
+    highscoreDisplay.textContent = highscore;
+    highestDisplay.textContent = highest;
   };
 
   const highlightKey = (index) => {
@@ -71,7 +81,7 @@ const Gui = (() => {
 
   renderBoard();
 
-  return { unit, renderCell, clearBoard, highlightKey };
+  return { unit, renderCell, clearBoard, highlightKey, updateScore };
 })();
 
 export default Gui;

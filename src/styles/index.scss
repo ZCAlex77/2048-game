@@ -61,6 +61,20 @@ body {
   }
 }
 
+#log {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 2rem;
+  position: relative;
+}
+
+#msg {
+  display: none;
+}
+
 h1 {
   font-size: 2.4rem;
   color: #fff;
