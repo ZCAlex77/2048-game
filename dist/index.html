@@ -10,7 +10,25 @@
 
 <body>
   <h1>2048<sub>by Alexandru Zmău</sub></h1>
-  <canvas></canvas>
+  <div id="inputVisual">
+    <div>
+      <div></div>
+      <div class="keyDisplay">&uarr;</div>
+      <div></div>
+      <div class="keyDisplay">&larr;</div>
+      <div class="keyDisplay">&darr;</div>
+      <div class="keyDisplay">&rarr;</div>
+    </div>
+  </div>
+  <div>
+    <canvas></canvas>
+  </div>
+  <div id="log">
+    <h2 id="msg">Game over!</h2>
+    <p>Highscore: <span id="highscore">4</span></p>
+    <p>Score: <span id="score">4</span></p>
+    <p>Highest: <span id="highest">2</span></p>
+  </div>
 </body>
 
 </html>

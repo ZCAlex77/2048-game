@@ -2,6 +2,163 @@
 /******/ 	"use strict";
 /******/ 	var __webpack_modules__ = ({
 
+/***/ "./src/index.js":
+/*!**********************!*\
+  !*** ./src/index.js ***!
+  \**********************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+/* harmony import */ var _styles_index_scss__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./styles/index.scss */ "./src/styles/index.scss");
+/* harmony import */ var _modules_Gui__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./modules/Gui */ "./src/modules/Gui.js");
+/* harmony import */ var _modules_UserInput__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./modules/UserInput */ "./src/modules/UserInput.js");
+/* harmony import */ var _modules_Cell__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./modules/Cell */ "./src/modules/Cell.js");
+
+
+
+
+const game = (() => {
+  let lastState = [];
+  let cells = [];
+  let score = 4;
+  let highest = 2;
+  let highscore = 4;
+  const updateScore = () => {
+    let values = cells.map(cell => cell.getValue());
+    score = values.reduce((p, c) => p += c, 0);
+    if (score >= highscore) highscore = score;
+    highest = Math.max(...values);
+    _modules_Gui__WEBPACK_IMPORTED_MODULE_1__["default"].updateScore(score, highscore, highest);
+  };
+  const spawnCell = () => {
+    let emptyCells = cells.filter(cell => !cell.getValue());
+    emptyCells[Math.floor(Math.random() * emptyCells.length)].setValue(2);
+  };
+  const merge = (axis, direction = 1) => {
+    let values = [];
+
+    // get cell values as a matrix
+    switch (axis) {
+      case 'horizontal':
+        // each matrix row will be a row of the game grid
+        for (let i = 0; i < 16; i += 4) values.push(cells.map(cell => cell.getValue()).slice(i, i + 4));
+        break;
+      case 'vertical':
+        // each matrix row will be a column of the game grid
+        values = [[], [], [], []];
+        for (let i = 0; i < 16; i++) {
+          values[i % 4].push(cells[i].getValue());
+        }
+        break;
+    }
+
+    // move empty cells to the side
+    for (let i = 0; i < 4; i++) {
+      let notZero = [];
+      for (let j = 0; j < 4; j++) if (values[i][j]) notZero.push(values[i][j]);
+      values[i] = [0, 0, 0, 0];
+      if (notZero.length) for (let j = 0; j < notZero.length; j++) values[i][j] = notZero[j];
+    }
+
+    // move the 0's to the other side of the rows if the direction is -1
+    if (direction === -1) {
+      for (let i = 0; i < 4; i++) {
+        let firstZero = values[i].findIndex(val => !val);
+        if (firstZero !== -1) values[i] = values[i].slice(firstZero).concat(values[i].slice(0, firstZero));
+      }
+    }
+
+    // decide the direction to iterate over the values
+    let from = direction === -1 ? 3 : 0;
+    let to = direction === -1 ? 0 : 3;
+
+    // iterate over the values and merge same-value neighbour cells
+    for (let i = 0; i < 4; i++) for (let j = from; j !== to + direction; j += direction) {
+      // if the value is 0 break because there are only 0's for the rest of the row
+      if (!values[i][j]) break;
+      // if the next value is the same as the current one, merge them
+      if (values[i][j] === values[i][j + direction]) {
+        values[i][j] *= 2;
+
+        // remove the used value and shift next cells in place
+        for (let k = j + direction; values[i][k] !== 0 && k >= 0 && k <= 3; k += direction) {
+          values[i][k] = values[i][k + direction];
+          if (values[i][k] === undefined) values[i][k] = 0;
+        }
+      }
+    }
+
+    // update cells with new values
+    values = values.flat();
+    let order = [];
+    if (axis === 'horizontal') order = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];else order = [0, 4, 8, 12, 1, 5, 9, 13, 2, 6, 10, 14, 3, 7, 11, 15];
+    values.forEach((val, i) => cells[order[i]].setValue(val));
+
+    // update board
+    update();
+  };
+  const setup = () => {
+    cells = Array(16).fill(0).map((n, i) => {
+      return (0,_modules_Cell__WEBPACK_IMPORTED_MODULE_3__["default"])(i % 4 * _modules_Gui__WEBPACK_IMPORTED_MODULE_1__["default"].unit, Math.floor(i / 4) * _modules_Gui__WEBPACK_IMPORTED_MODULE_1__["default"].unit, 0);
+    });
+    for (let i = 0; i < 2; i++) spawnCell();
+    lastState = cells.map(cell => cell.getValue());
+  };
+  const update = () => {
+    // check if cells moved
+    let madeMove = false;
+    for (let i = 0; i < 16; i++) if (cells[i].getValue() !== lastState[i]) madeMove = true;
+
+    // if cells moved, spawn another cell
+    if (madeMove) {
+      spawnCell();
+      lastState = cells.map(cell => cell.getValue());
+    }
+
+    // rendering
+    _modules_Gui__WEBPACK_IMPORTED_MODULE_1__["default"].clearBoard();
+    for (let i = 0; i < cells.length; i++) _modules_Gui__WEBPACK_IMPORTED_MODULE_1__["default"].renderCell(cells[i]);
+    updateScore();
+  };
+  setup();
+  update();
+  const restart = () => {};
+  return {
+    merge,
+    restart
+  };
+})();
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (game);
+
+/***/ }),
+
+/***/ "./src/modules/Cell.js":
+/*!*****************************!*\
+  !*** ./src/modules/Cell.js ***!
+  \*****************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+const Cell = (x, y, value) => {
+  const getValue = () => value;
+  const setValue = newValue => value = newValue;
+  return {
+    x,
+    y,
+    getValue,
+    setValue
+  };
+};
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (Cell);
+
+/***/ }),
+
 /***/ "./src/modules/Gui.js":
 /*!****************************!*\
   !*** ./src/modules/Gui.js ***!
@@ -14,11 +171,42 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 const Gui = (() => {
   const canvas = document.querySelector('canvas'),
+    inputVisual = document.querySelector('#inputVisual'),
+    logDisplay = document.querySelector('#log'),
+    keyDisplays = document.querySelectorAll('.keyDisplay'),
+    scoreDisplay = document.querySelector('#score'),
+    highscoreDisplay = document.querySelector('#highscore'),
+    highestDisplay = document.querySelector('#highest'),
+    msgDisplay = document.querySelector('#msg'),
     ctx = canvas.getContext('2d');
   let unit = Math.floor((window.innerWidth < 400 ? window.innerWidth - 20 : 400) / 4 + 10);
   canvas.width = canvas.height = unit * 4;
-  const renderBoard = (() => {
-    ctx.strokeStyle = 'gold';
+  inputVisual.style.height = logDisplay.style.height = `${unit * 4}px`;
+  const cellColorMap = {
+    2: '#363006',
+    4: '#75690E',
+    8: '#B5A216',
+    16: '#DBC51A',
+    32: '#F5DC1E',
+    64: '#36250A',
+    128: '#755116',
+    256: '#B57D22',
+    512: '#DB972A',
+    1024: '#F5AA2F',
+    2048: '#F5420E'
+  };
+  const updateScore = (score, highscore, highest) => {
+    scoreDisplay.textContent = score;
+    highscoreDisplay.textContent = highscore;
+    highestDisplay.textContent = highest;
+  };
+  const highlightKey = index => {
+    keyDisplays.forEach(k => k.classList.remove('active'));
+    keyDisplays[index].classList.add('active');
+    setTimeout(() => keyDisplays[index].classList.remove('active'), 200);
+  };
+  const renderBoard = () => {
+    ctx.strokeStyle = '#fff';
     ctx.lineWidth = 2;
     for (let i = 0; i < 5; i++) {
       // vertical lines
@@ -34,12 +222,72 @@ const Gui = (() => {
       ctx.closePath();
       ctx.stroke();
     }
-  })();
+  };
+  const clearBoard = () => {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    renderBoard();
+  };
+  const renderCell = cell => {
+    if (!cell.getValue()) return;
+    ctx.fillStyle = cellColorMap[cell.getValue()];
+    ctx.fillRect(cell.x + 1, cell.y + 1, unit - 2, unit - 2);
+    ctx.fillStyle = '#fff';
+    ctx.font = '30px Monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText(cell.getValue(), cell.x + unit / 2, cell.y + unit / 2 + 10);
+  };
+  renderBoard();
   return {
-    unit
+    unit,
+    renderCell,
+    clearBoard,
+    highlightKey,
+    updateScore
   };
 })();
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (Gui);
+
+/***/ }),
+
+/***/ "./src/modules/UserInput.js":
+/*!**********************************!*\
+  !*** ./src/modules/UserInput.js ***!
+  \**********************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+/* harmony import */ var _index__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../index */ "./src/index.js");
+/* harmony import */ var _Gui__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./Gui */ "./src/modules/Gui.js");
+
+
+const UserInput = (() => {
+  document.addEventListener('keydown', ev => {
+    switch (ev.key) {
+      case 'ArrowUp':
+        _index__WEBPACK_IMPORTED_MODULE_0__["default"].merge('vertical');
+        _Gui__WEBPACK_IMPORTED_MODULE_1__["default"].highlightKey(0);
+        break;
+      case 'ArrowDown':
+        _index__WEBPACK_IMPORTED_MODULE_0__["default"].merge('vertical', -1);
+        _Gui__WEBPACK_IMPORTED_MODULE_1__["default"].highlightKey(2);
+        break;
+      case 'ArrowLeft':
+        _index__WEBPACK_IMPORTED_MODULE_0__["default"].merge('horizontal');
+        _Gui__WEBPACK_IMPORTED_MODULE_1__["default"].highlightKey(1);
+        break;
+      case 'ArrowRight':
+        _index__WEBPACK_IMPORTED_MODULE_0__["default"].merge('horizontal', -1);
+        _Gui__WEBPACK_IMPORTED_MODULE_1__["default"].highlightKey(3);
+        break;
+      default:
+        return;
+    }
+  });
+})();
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (UserInput);
 
 /***/ }),
 
@@ -63,7 +311,7 @@ __webpack_require__.r(__webpack_exports__);
 var ___CSS_LOADER_EXPORT___ = _node_modules_css_loader_dist_runtime_api_js__WEBPACK_IMPORTED_MODULE_1___default()((_node_modules_css_loader_dist_runtime_sourceMaps_js__WEBPACK_IMPORTED_MODULE_0___default()));
 ___CSS_LOADER_EXPORT___.push([module.id, "@import url(https://fonts.googleapis.com/css2?family=Roboto&display=swap);"]);
 // Module
-___CSS_LOADER_EXPORT___.push([module.id, "* {\n  padding: 0;\n  margin: 0;\n  box-sizing: border-box;\n  color: inherit;\n  font-family: \"Roboto\", sans-serif;\n}\n\nbody {\n  width: 100vw;\n  height: 100vh;\n  background: #111;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  flex-direction: column;\n  gap: 10px;\n}\n\nh1 {\n  font-size: 2.4rem;\n  color: #fff;\n}\nh1 sub {\n  font-size: 40%;\n  font-weight: normal;\n  margin-left: 5px;\n}\n\ncanvas {\n  background-color: #222;\n}", "",{"version":3,"sources":["webpack://./src/styles/index.scss"],"names":[],"mappings":"AAEA;EACE,UAAA;EACA,SAAA;EACA,sBAAA;EACA,cAAA;EACA,iCAAA;AAAF;;AAGA;EACE,YAAA;EACA,aAAA;EACA,gBAAA;EACA,aAAA;EACA,mBAAA;EACA,uBAAA;EACA,sBAAA;EACA,SAAA;AAAF;;AAGA;EACE,iBAAA;EACA,WAAA;AAAF;AAEE;EACE,cAAA;EACA,mBAAA;EACA,gBAAA;AAAJ;;AAIA;EACE,sBAAA;AADF","sourcesContent":["@import url('https://fonts.googleapis.com/css2?family=Roboto&display=swap');\r\n\r\n* {\r\n  padding: 0;\r\n  margin: 0;\r\n  box-sizing: border-box;\r\n  color: inherit;\r\n  font-family: 'Roboto', sans-serif;\r\n}\r\n\r\nbody {\r\n  width: 100vw;\r\n  height: 100vh;\r\n  background: #111;\r\n  display: flex;\r\n  align-items: center;\r\n  justify-content: center;\r\n  flex-direction: column;\r\n  gap: 10px;\r\n}\r\n\r\nh1 {\r\n  font-size: 2.4rem;\r\n  color: #fff;\r\n\r\n  sub {\r\n    font-size: 40%;\r\n    font-weight: normal;\r\n    margin-left: 5px;\r\n  }\r\n}\r\n\r\ncanvas {\r\n  background-color: #222;\r\n}\r\n"],"sourceRoot":""}]);
+___CSS_LOADER_EXPORT___.push([module.id, "* {\n  padding: 0;\n  margin: 0;\n  box-sizing: border-box;\n  color: inherit;\n  font-family: \"Roboto\", sans-serif;\n}\n\nbody {\n  width: 100vw;\n  height: 100vh;\n  background: #111;\n  display: grid;\n  grid-template-rows: 30px auto 1fr 30px;\n  grid-template-columns: 30px 1fr 1fr 1fr 30px;\n  gap: 20px;\n}\nbody > div {\n  grid-row: 3/span 1;\n}\nbody > div:nth-of-type(1) {\n  grid-column: calc(1 + 1);\n}\nbody > div:nth-of-type(2) {\n  grid-column: calc(2 + 1);\n}\nbody > div:nth-of-type(3) {\n  grid-column: calc(3 + 1);\n}\n\n#inputVisual {\n  display: grid;\n  place-items: center;\n}\n#inputVisual > div {\n  width: 214px;\n  height: 142px;\n  display: grid;\n  grid-template-columns: 1fr 1fr 1fr;\n  gap: 2px;\n}\n#inputVisual > div > div:not(:first-of-type, :nth-of-type(3)) {\n  color: #111;\n  border: 2px inset #fff;\n  color: #fff;\n  font-size: 1.6rem;\n  place-self: center;\n  width: 70px;\n  height: 70px;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  transition: background 0.2s, color 0.2s;\n}\n#inputVisual > div > div:not(:first-of-type, :nth-of-type(3)).active {\n  background: #fff;\n  color: #111;\n}\n\n#log {\n  display: flex;\n  flex-direction: column;\n  align-items: center;\n  justify-content: center;\n  color: #fff;\n  font-size: 2rem;\n  position: relative;\n}\n\n#msg {\n  display: none;\n}\n\nh1 {\n  font-size: 2.4rem;\n  color: #fff;\n  text-align: center;\n  margin-bottom: 20px;\n  grid-area: 2/3/span 1/span 1;\n}\nh1 sub {\n  font-size: 40%;\n  font-weight: normal;\n  margin-left: 5px;\n}\n\ncanvas {\n  background-color: #222;\n}", "",{"version":3,"sources":["webpack://./src/styles/index.scss"],"names":[],"mappings":"AAEA;EACE,UAAA;EACA,SAAA;EACA,sBAAA;EACA,cAAA;EACA,iCAAA;AAAF;;AAGA;EACE,YAAA;EACA,aAAA;EACA,gBAAA;EACA,aAAA;EACA,sCAAA;EACA,4CAAA;EACA,SAAA;AAAF;AAEE;EACE,kBAAA;AAAJ;AAKI;EACE,wBAAA;AAHN;AAEI;EACE,wBAAA;AAAN;AADI;EACE,wBAAA;AAGN;;AAEA;EACE,aAAA;EACA,mBAAA;AACF;AACE;EACE,YAAA;EACA,aAAA;EACA,aAAA;EACA,kCAAA;EACA,QAAA;AACJ;AACI;EACE,WAAA;EACA,sBAAA;EACA,WAAA;EACA,iBAAA;EACA,kBAAA;EACA,WAAA;EACA,YAAA;EACA,aAAA;EACA,mBAAA;EACA,uBAAA;EACA,uCAAA;AACN;AACM;EACE,gBAAA;EACA,WAAA;AACR;;AAKA;EACE,aAAA;EACA,sBAAA;EACA,mBAAA;EACA,uBAAA;EACA,WAAA;EACA,eAAA;EACA,kBAAA;AAFF;;AAKA;EACE,aAAA;AAFF;;AAKA;EACE,iBAAA;EACA,WAAA;EACA,kBAAA;EACA,mBAAA;EACA,4BAAA;AAFF;AAIE;EACE,cAAA;EACA,mBAAA;EACA,gBAAA;AAFJ;;AAMA;EACE,sBAAA;AAHF","sourcesContent":["@import url('https://fonts.googleapis.com/css2?family=Roboto&display=swap');\r\n\r\n* {\r\n  padding: 0;\r\n  margin: 0;\r\n  box-sizing: border-box;\r\n  color: inherit;\r\n  font-family: 'Roboto', sans-serif;\r\n}\r\n\r\nbody {\r\n  width: 100vw;\r\n  height: 100vh;\r\n  background: #111;\r\n  display: grid;\r\n  grid-template-rows: 30px auto 1fr 30px;\r\n  grid-template-columns: 30px 1fr 1fr 1fr 30px;\r\n  gap: 20px;\r\n\r\n  > div {\r\n    grid-row: 3 / span 1;\r\n  }\r\n\r\n  $divs: 1, 2, 3;\r\n  @each $div in $divs {\r\n    > div:nth-of-type(#{$div}) {\r\n      grid-column: calc(#{$div} + 1);\r\n    }\r\n  }\r\n}\r\n\r\n#inputVisual {\r\n  display: grid;\r\n  place-items: center;\r\n\r\n  > div {\r\n    width: 214px;\r\n    height: 142px;\r\n    display: grid;\r\n    grid-template-columns: 1fr 1fr 1fr;\r\n    gap: 2px;\r\n\r\n    > div:not(:first-of-type, :nth-of-type(3)) {\r\n      color: #111;\r\n      border: 2px inset #fff;\r\n      color: #fff;\r\n      font-size: 1.6rem;\r\n      place-self: center;\r\n      width: 70px;\r\n      height: 70px;\r\n      display: flex;\r\n      align-items: center;\r\n      justify-content: center;\r\n      transition: background 0.2s, color 0.2s;\r\n\r\n      &.active {\r\n        background: #fff;\r\n        color: #111;\r\n      }\r\n    }\r\n  }\r\n}\r\n\r\n#log {\r\n  display: flex;\r\n  flex-direction: column;\r\n  align-items: center;\r\n  justify-content: center;\r\n  color: #fff;\r\n  font-size: 2rem;\r\n  position: relative;\r\n}\r\n\r\n#msg {\r\n  display: none;\r\n}\r\n\r\nh1 {\r\n  font-size: 2.4rem;\r\n  color: #fff;\r\n  text-align: center;\r\n  margin-bottom: 20px;\r\n  grid-area: 2 / 3 / span 1 / span 1;\r\n\r\n  sub {\r\n    font-size: 40%;\r\n    font-weight: normal;\r\n    margin-left: 5px;\r\n  }\r\n}\r\n\r\ncanvas {\r\n  background-color: #222;\r\n}\r\n"],"sourceRoot":""}]);
 // Exports
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (___CSS_LOADER_EXPORT___);
 
@@ -645,27 +893,12 @@ module.exports = styleTagTransform;
 /******/ 	})();
 /******/ 	
 /************************************************************************/
-var __webpack_exports__ = {};
-// This entry need to be wrapped in an IIFE because it need to be isolated against other modules in the chunk.
-(() => {
-/*!**********************!*\
-  !*** ./src/index.js ***!
-  \**********************/
-__webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _styles_index_scss__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./styles/index.scss */ "./src/styles/index.scss");
-/* harmony import */ var _modules_Gui__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./modules/Gui */ "./src/modules/Gui.js");
-
-
-const game = (() => {
-  const setup = () => {};
-  const update = () => {};
-  const restart = () => {};
-  return {
-    restart
-  };
-})();
-})();
-
+/******/ 	
+/******/ 	// startup
+/******/ 	// Load entry module and return exports
+/******/ 	// This entry module is referenced by other modules so it can't be inlined
+/******/ 	var __webpack_exports__ = __webpack_require__("./src/index.js");
+/******/ 	
 /******/ })()
 ;
 //# sourceMappingURL=bundle.js.map

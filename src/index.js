@@ -9,6 +9,27 @@ const game = (() => {
   let score = 4;
   let highest = 2;
   let highscore = 4;
+  let gameOver = false;
+
+  const checkIfGameOver = () => {
+    let values = cells.map((cell) => cell.getValue());
+    if (values.some((val) => !val)) return;
+    values = [
+      values.slice(0, 4),
+      values.slice(4, 8),
+      values.slice(8, 12),
+      values.slice(12),
+    ];
+
+    for (let i = 0; i < 4; i++)
+      for (let j = 0; j < 4; j++) {
+        if (j < 3) if (values[i][j] === values[i][j + 1]) return;
+        if (i < 3) if (values[i][j] === values[i + 1][j]) return;
+      }
+
+    gameOver = true;
+    Gui.showGameOver();
+  };
 
   const updateScore = () => {
     let values = cells.map((cell) => cell.getValue());
@@ -112,6 +133,8 @@ const game = (() => {
   };
 
   const update = () => {
+    if (gameOver) return;
+
     // check if cells moved
     let madeMove = false;
     for (let i = 0; i < 16; i++)
@@ -128,6 +151,7 @@ const game = (() => {
     for (let i = 0; i < cells.length; i++) Gui.renderCell(cells[i]);
 
     updateScore();
+    checkIfGameOver();
   };
 
   setup();

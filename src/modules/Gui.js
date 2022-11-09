@@ -30,6 +30,11 @@ const Gui = (() => {
     2048: '#F5420E',
   };
 
+  const showGameOver = () => {
+    msgDisplay.textContent = 'Game over!';
+    msgDisplay.style.display = 'block';
+  };
+
   const updateScore = (score, highscore, highest) => {
     scoreDisplay.textContent = score;
     highscoreDisplay.textContent = highscore;
@@ -81,7 +86,14 @@ const Gui = (() => {
 
   renderBoard();
 
-  return { unit, renderCell, clearBoard, highlightKey, updateScore };
+  return {
+    unit,
+    renderCell,
+    clearBoard,
+    highlightKey,
+    updateScore,
+    showGameOver,
+  };
 })();
 
 export default Gui;
