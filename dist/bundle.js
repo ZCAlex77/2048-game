@@ -21,15 +21,35 @@ __webpack_require__.r(__webpack_exports__);
 
 
 const game = (() => {
-  let lastState = [];
-  let cells = [];
   let score = 4;
   let highest = 2;
-  let highscore = 4;
+  let highscore = Number(localStorage.getItem('2048highscore') ?? 4);
+  let gameOver = false;
+  let lastState = [];
+  let cells = Array(16).fill(0).map((n, i) => {
+    return (0,_modules_Cell__WEBPACK_IMPORTED_MODULE_3__["default"])(i % 4 * _modules_Gui__WEBPACK_IMPORTED_MODULE_1__["default"].unit, Math.floor(i / 4) * _modules_Gui__WEBPACK_IMPORTED_MODULE_1__["default"].unit, 0);
+  });
+  const checkIfGameOver = () => {
+    let values = cells.map(cell => cell.getValue());
+    if (values.some(val => !val)) return;
+    values = [values.slice(0, 4), values.slice(4, 8), values.slice(8, 12), values.slice(12)];
+    for (let i = 0; i < 4; i++) for (let j = 0; j < 4; j++) {
+      if (j < 3) if (values[i][j] === values[i][j + 1]) return;
+      if (i < 3) if (values[i][j] === values[i + 1][j]) return;
+    }
+    gameOver = true;
+    _modules_Gui__WEBPACK_IMPORTED_MODULE_1__["default"].toggleGameOver(true);
+  };
+  const saveHighscore = () => {
+    localStorage.setItem('2048highscore', highscore);
+  };
   const updateScore = () => {
     let values = cells.map(cell => cell.getValue());
     score = values.reduce((p, c) => p += c, 0);
-    if (score >= highscore) highscore = score;
+    if (score >= highscore) {
+      highscore = score;
+      saveHighscore();
+    }
     highest = Math.max(...values);
     _modules_Gui__WEBPACK_IMPORTED_MODULE_1__["default"].updateScore(score, highscore, highest);
   };
@@ -101,13 +121,12 @@ const game = (() => {
     update();
   };
   const setup = () => {
-    cells = Array(16).fill(0).map((n, i) => {
-      return (0,_modules_Cell__WEBPACK_IMPORTED_MODULE_3__["default"])(i % 4 * _modules_Gui__WEBPACK_IMPORTED_MODULE_1__["default"].unit, Math.floor(i / 4) * _modules_Gui__WEBPACK_IMPORTED_MODULE_1__["default"].unit, 0);
-    });
     for (let i = 0; i < 2; i++) spawnCell();
     lastState = cells.map(cell => cell.getValue());
   };
   const update = () => {
+    if (gameOver) return;
+
     // check if cells moved
     let madeMove = false;
     for (let i = 0; i < 16; i++) if (cells[i].getValue() !== lastState[i]) madeMove = true;
@@ -122,10 +141,22 @@ const game = (() => {
     _modules_Gui__WEBPACK_IMPORTED_MODULE_1__["default"].clearBoard();
     for (let i = 0; i < cells.length; i++) _modules_Gui__WEBPACK_IMPORTED_MODULE_1__["default"].renderCell(cells[i]);
     updateScore();
+    checkIfGameOver();
   };
   setup();
   update();
-  const restart = () => {};
+  const restart = () => {
+    if (!gameOver) if (!confirm('Are you sure you want to restart?')) return;
+    gameOver = false;
+    score = 4;
+    highest = 2;
+    cells.forEach(cell => cell.setValue(0));
+    _modules_Gui__WEBPACK_IMPORTED_MODULE_1__["default"].toggleGameOver(false);
+    _modules_Gui__WEBPACK_IMPORTED_MODULE_1__["default"].clearBoard();
+    _modules_Gui__WEBPACK_IMPORTED_MODULE_1__["default"].updateScore(4, highscore, 2);
+    setup();
+    update();
+  };
   return {
     merge,
     restart
@@ -195,6 +226,9 @@ const Gui = (() => {
     1024: '#F5AA2F',
     2048: '#F5420E'
   };
+  const toggleGameOver = onOff => {
+    msgDisplay.style.visibility = onOff ? 'visible' : 'hidden';
+  };
   const updateScore = (score, highscore, highest) => {
     scoreDisplay.textContent = score;
     highscoreDisplay.textContent = highscore;
@@ -242,7 +276,8 @@ const Gui = (() => {
     renderCell,
     clearBoard,
     highlightKey,
-    updateScore
+    updateScore,
+    toggleGameOver
   };
 })();
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (Gui);
@@ -264,6 +299,10 @@ __webpack_require__.r(__webpack_exports__);
 
 
 const UserInput = (() => {
+  const restartBtn = document.querySelector('#restart');
+  restartBtn.onclick = () => {
+    _index__WEBPACK_IMPORTED_MODULE_0__["default"].restart();
+  };
   document.addEventListener('keydown', ev => {
     switch (ev.key) {
       case 'ArrowUp':
@@ -311,7 +350,7 @@ __webpack_require__.r(__webpack_exports__);
 var ___CSS_LOADER_EXPORT___ = _node_modules_css_loader_dist_runtime_api_js__WEBPACK_IMPORTED_MODULE_1___default()((_node_modules_css_loader_dist_runtime_sourceMaps_js__WEBPACK_IMPORTED_MODULE_0___default()));
 ___CSS_LOADER_EXPORT___.push([module.id, "@import url(https://fonts.googleapis.com/css2?family=Roboto&display=swap);"]);
 // Module
-___CSS_LOADER_EXPORT___.push([module.id, "* {\n  padding: 0;\n  margin: 0;\n  box-sizing: border-box;\n  color: inherit;\n  font-family: \"Roboto\", sans-serif;\n}\n\nbody {\n  width: 100vw;\n  height: 100vh;\n  background: #111;\n  display: grid;\n  grid-template-rows: 30px auto 1fr 30px;\n  grid-template-columns: 30px 1fr 1fr 1fr 30px;\n  gap: 20px;\n}\nbody > div {\n  grid-row: 3/span 1;\n}\nbody > div:nth-of-type(1) {\n  grid-column: calc(1 + 1);\n}\nbody > div:nth-of-type(2) {\n  grid-column: calc(2 + 1);\n}\nbody > div:nth-of-type(3) {\n  grid-column: calc(3 + 1);\n}\n\n#inputVisual {\n  display: grid;\n  place-items: center;\n}\n#inputVisual > div {\n  width: 214px;\n  height: 142px;\n  display: grid;\n  grid-template-columns: 1fr 1fr 1fr;\n  gap: 2px;\n}\n#inputVisual > div > div:not(:first-of-type, :nth-of-type(3)) {\n  color: #111;\n  border: 2px inset #fff;\n  color: #fff;\n  font-size: 1.6rem;\n  place-self: center;\n  width: 70px;\n  height: 70px;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  transition: background 0.2s, color 0.2s;\n}\n#inputVisual > div > div:not(:first-of-type, :nth-of-type(3)).active {\n  background: #fff;\n  color: #111;\n}\n\n#log {\n  display: flex;\n  flex-direction: column;\n  align-items: center;\n  justify-content: center;\n  color: #fff;\n  font-size: 2rem;\n  position: relative;\n}\n\n#msg {\n  display: none;\n}\n\nh1 {\n  font-size: 2.4rem;\n  color: #fff;\n  text-align: center;\n  margin-bottom: 20px;\n  grid-area: 2/3/span 1/span 1;\n}\nh1 sub {\n  font-size: 40%;\n  font-weight: normal;\n  margin-left: 5px;\n}\n\ncanvas {\n  background-color: #222;\n}", "",{"version":3,"sources":["webpack://./src/styles/index.scss"],"names":[],"mappings":"AAEA;EACE,UAAA;EACA,SAAA;EACA,sBAAA;EACA,cAAA;EACA,iCAAA;AAAF;;AAGA;EACE,YAAA;EACA,aAAA;EACA,gBAAA;EACA,aAAA;EACA,sCAAA;EACA,4CAAA;EACA,SAAA;AAAF;AAEE;EACE,kBAAA;AAAJ;AAKI;EACE,wBAAA;AAHN;AAEI;EACE,wBAAA;AAAN;AADI;EACE,wBAAA;AAGN;;AAEA;EACE,aAAA;EACA,mBAAA;AACF;AACE;EACE,YAAA;EACA,aAAA;EACA,aAAA;EACA,kCAAA;EACA,QAAA;AACJ;AACI;EACE,WAAA;EACA,sBAAA;EACA,WAAA;EACA,iBAAA;EACA,kBAAA;EACA,WAAA;EACA,YAAA;EACA,aAAA;EACA,mBAAA;EACA,uBAAA;EACA,uCAAA;AACN;AACM;EACE,gBAAA;EACA,WAAA;AACR;;AAKA;EACE,aAAA;EACA,sBAAA;EACA,mBAAA;EACA,uBAAA;EACA,WAAA;EACA,eAAA;EACA,kBAAA;AAFF;;AAKA;EACE,aAAA;AAFF;;AAKA;EACE,iBAAA;EACA,WAAA;EACA,kBAAA;EACA,mBAAA;EACA,4BAAA;AAFF;AAIE;EACE,cAAA;EACA,mBAAA;EACA,gBAAA;AAFJ;;AAMA;EACE,sBAAA;AAHF","sourcesContent":["@import url('https://fonts.googleapis.com/css2?family=Roboto&display=swap');\r\n\r\n* {\r\n  padding: 0;\r\n  margin: 0;\r\n  box-sizing: border-box;\r\n  color: inherit;\r\n  font-family: 'Roboto', sans-serif;\r\n}\r\n\r\nbody {\r\n  width: 100vw;\r\n  height: 100vh;\r\n  background: #111;\r\n  display: grid;\r\n  grid-template-rows: 30px auto 1fr 30px;\r\n  grid-template-columns: 30px 1fr 1fr 1fr 30px;\r\n  gap: 20px;\r\n\r\n  > div {\r\n    grid-row: 3 / span 1;\r\n  }\r\n\r\n  $divs: 1, 2, 3;\r\n  @each $div in $divs {\r\n    > div:nth-of-type(#{$div}) {\r\n      grid-column: calc(#{$div} + 1);\r\n    }\r\n  }\r\n}\r\n\r\n#inputVisual {\r\n  display: grid;\r\n  place-items: center;\r\n\r\n  > div {\r\n    width: 214px;\r\n    height: 142px;\r\n    display: grid;\r\n    grid-template-columns: 1fr 1fr 1fr;\r\n    gap: 2px;\r\n\r\n    > div:not(:first-of-type, :nth-of-type(3)) {\r\n      color: #111;\r\n      border: 2px inset #fff;\r\n      color: #fff;\r\n      font-size: 1.6rem;\r\n      place-self: center;\r\n      width: 70px;\r\n      height: 70px;\r\n      display: flex;\r\n      align-items: center;\r\n      justify-content: center;\r\n      transition: background 0.2s, color 0.2s;\r\n\r\n      &.active {\r\n        background: #fff;\r\n        color: #111;\r\n      }\r\n    }\r\n  }\r\n}\r\n\r\n#log {\r\n  display: flex;\r\n  flex-direction: column;\r\n  align-items: center;\r\n  justify-content: center;\r\n  color: #fff;\r\n  font-size: 2rem;\r\n  position: relative;\r\n}\r\n\r\n#msg {\r\n  display: none;\r\n}\r\n\r\nh1 {\r\n  font-size: 2.4rem;\r\n  color: #fff;\r\n  text-align: center;\r\n  margin-bottom: 20px;\r\n  grid-area: 2 / 3 / span 1 / span 1;\r\n\r\n  sub {\r\n    font-size: 40%;\r\n    font-weight: normal;\r\n    margin-left: 5px;\r\n  }\r\n}\r\n\r\ncanvas {\r\n  background-color: #222;\r\n}\r\n"],"sourceRoot":""}]);
+___CSS_LOADER_EXPORT___.push([module.id, "* {\n  padding: 0;\n  margin: 0;\n  box-sizing: border-box;\n  color: inherit;\n  font-family: \"Roboto\", sans-serif;\n}\n\nbody {\n  width: 100vw;\n  height: 100vh;\n  background: #111;\n  display: grid;\n  grid-template-rows: 30px auto 1fr 30px;\n  grid-template-columns: 30px 1fr 1fr 1fr 30px;\n  gap: 20px;\n}\nbody > div {\n  grid-row: 3/span 1;\n}\nbody > div:nth-of-type(1) {\n  grid-column: calc(1 + 1);\n}\nbody > div:nth-of-type(2) {\n  grid-column: calc(2 + 1);\n}\nbody > div:nth-of-type(3) {\n  grid-column: calc(3 + 1);\n}\n\n#inputVisual {\n  display: grid;\n  place-items: center;\n}\n#inputVisual > div {\n  width: 214px;\n  height: 142px;\n  display: grid;\n  grid-template-columns: 1fr 1fr 1fr;\n  gap: 2px;\n}\n#inputVisual > div > div:not(:first-of-type, :nth-of-type(3)) {\n  color: #111;\n  border: 2px inset #fff;\n  color: #fff;\n  font-size: 1.6rem;\n  place-self: center;\n  width: 70px;\n  height: 70px;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  transition: background 0.2s, color 0.2s;\n}\n#inputVisual > div > div:not(:first-of-type, :nth-of-type(3)).active {\n  background: #fff;\n  color: #111;\n}\n\n#log {\n  display: flex;\n  flex-direction: column;\n  align-items: center;\n  justify-content: center;\n  color: #fff;\n  font-size: 2rem;\n  position: relative;\n}\n\n#msg {\n  visibility: hidden;\n}\n\n#restart {\n  padding: 10px 20px;\n  border: 2px solid #fff;\n  border-radius: 10px;\n  margin-top: 30px;\n  background: transparent;\n  color: #fff;\n  font-size: 1.2rem;\n  transition: color 0.2s, background 0.2s;\n  cursor: pointer;\n}\n#restart:hover {\n  color: #111;\n  background: #fff;\n}\n\nh1 {\n  font-size: 2.4rem;\n  color: #fff;\n  text-align: center;\n  margin-bottom: 20px;\n  grid-area: 2/3/span 1/span 1;\n}\nh1 sub {\n  font-size: 40%;\n  font-weight: normal;\n  margin-left: 5px;\n}\n\ncanvas {\n  background-color: #222;\n}", "",{"version":3,"sources":["webpack://./src/styles/index.scss"],"names":[],"mappings":"AAEA;EACE,UAAA;EACA,SAAA;EACA,sBAAA;EACA,cAAA;EACA,iCAAA;AAAF;;AAGA;EACE,YAAA;EACA,aAAA;EACA,gBAAA;EACA,aAAA;EACA,sCAAA;EACA,4CAAA;EACA,SAAA;AAAF;AAEE;EACE,kBAAA;AAAJ;AAKI;EACE,wBAAA;AAHN;AAEI;EACE,wBAAA;AAAN;AADI;EACE,wBAAA;AAGN;;AAEA;EACE,aAAA;EACA,mBAAA;AACF;AACE;EACE,YAAA;EACA,aAAA;EACA,aAAA;EACA,kCAAA;EACA,QAAA;AACJ;AACI;EACE,WAAA;EACA,sBAAA;EACA,WAAA;EACA,iBAAA;EACA,kBAAA;EACA,WAAA;EACA,YAAA;EACA,aAAA;EACA,mBAAA;EACA,uBAAA;EACA,uCAAA;AACN;AACM;EACE,gBAAA;EACA,WAAA;AACR;;AAKA;EACE,aAAA;EACA,sBAAA;EACA,mBAAA;EACA,uBAAA;EACA,WAAA;EACA,eAAA;EACA,kBAAA;AAFF;;AAKA;EACE,kBAAA;AAFF;;AAKA;EACE,kBAAA;EACA,sBAAA;EACA,mBAAA;EACA,gBAAA;EACA,uBAAA;EACA,WAAA;EACA,iBAAA;EACA,uCAAA;EACA,eAAA;AAFF;AAIE;EACE,WAAA;EACA,gBAAA;AAFJ;;AAMA;EACE,iBAAA;EACA,WAAA;EACA,kBAAA;EACA,mBAAA;EACA,4BAAA;AAHF;AAKE;EACE,cAAA;EACA,mBAAA;EACA,gBAAA;AAHJ;;AAOA;EACE,sBAAA;AAJF","sourcesContent":["@import url('https://fonts.googleapis.com/css2?family=Roboto&display=swap');\r\n\r\n* {\r\n  padding: 0;\r\n  margin: 0;\r\n  box-sizing: border-box;\r\n  color: inherit;\r\n  font-family: 'Roboto', sans-serif;\r\n}\r\n\r\nbody {\r\n  width: 100vw;\r\n  height: 100vh;\r\n  background: #111;\r\n  display: grid;\r\n  grid-template-rows: 30px auto 1fr 30px;\r\n  grid-template-columns: 30px 1fr 1fr 1fr 30px;\r\n  gap: 20px;\r\n\r\n  > div {\r\n    grid-row: 3 / span 1;\r\n  }\r\n\r\n  $divs: 1, 2, 3;\r\n  @each $div in $divs {\r\n    > div:nth-of-type(#{$div}) {\r\n      grid-column: calc(#{$div} + 1);\r\n    }\r\n  }\r\n}\r\n\r\n#inputVisual {\r\n  display: grid;\r\n  place-items: center;\r\n\r\n  > div {\r\n    width: 214px;\r\n    height: 142px;\r\n    display: grid;\r\n    grid-template-columns: 1fr 1fr 1fr;\r\n    gap: 2px;\r\n\r\n    > div:not(:first-of-type, :nth-of-type(3)) {\r\n      color: #111;\r\n      border: 2px inset #fff;\r\n      color: #fff;\r\n      font-size: 1.6rem;\r\n      place-self: center;\r\n      width: 70px;\r\n      height: 70px;\r\n      display: flex;\r\n      align-items: center;\r\n      justify-content: center;\r\n      transition: background 0.2s, color 0.2s;\r\n\r\n      &.active {\r\n        background: #fff;\r\n        color: #111;\r\n      }\r\n    }\r\n  }\r\n}\r\n\r\n#log {\r\n  display: flex;\r\n  flex-direction: column;\r\n  align-items: center;\r\n  justify-content: center;\r\n  color: #fff;\r\n  font-size: 2rem;\r\n  position: relative;\r\n}\r\n\r\n#msg {\r\n  visibility: hidden;\r\n}\r\n\r\n#restart {\r\n  padding: 10px 20px;\r\n  border: 2px solid #fff;\r\n  border-radius: 10px;\r\n  margin-top: 30px;\r\n  background: transparent;\r\n  color: #fff;\r\n  font-size: 1.2rem;\r\n  transition: color 0.2s, background 0.2s;\r\n  cursor: pointer;\r\n\r\n  &:hover {\r\n    color: #111;\r\n    background: #fff;\r\n  }\r\n}\r\n\r\nh1 {\r\n  font-size: 2.4rem;\r\n  color: #fff;\r\n  text-align: center;\r\n  margin-bottom: 20px;\r\n  grid-area: 2 / 3 / span 1 / span 1;\r\n\r\n  sub {\r\n    font-size: 40%;\r\n    font-weight: normal;\r\n    margin-left: 5px;\r\n  }\r\n}\r\n\r\ncanvas {\r\n  background-color: #222;\r\n}\r\n"],"sourceRoot":""}]);
 // Exports
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (___CSS_LOADER_EXPORT___);
 
